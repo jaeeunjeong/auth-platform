@@ -1,19 +1,19 @@
 package com.jejeong.authplatform.service.sign;
 
+import com.jejeong.authplatform.dto.sign.RefreshTokenResponse;
 import com.jejeong.authplatform.dto.sign.SignInRequest;
 import com.jejeong.authplatform.dto.sign.SignInResponse;
 import com.jejeong.authplatform.dto.sign.SignUpRequest;
 import com.jejeong.authplatform.entity.member.Member;
 import com.jejeong.authplatform.entity.member.Role;
 import com.jejeong.authplatform.entity.member.RoleType;
-import com.jejeong.authplatform.exception.member.MemberNotFoundException;
 import com.jejeong.authplatform.exception.member.RoleNotFoundException;
+import com.jejeong.authplatform.exception.security.AuthenticationEntryPointException;
 import com.jejeong.authplatform.exception.sign.LoginFailureException;
 import com.jejeong.authplatform.exception.sign.MemberEmailAlreadyExistException;
 import com.jejeong.authplatform.exception.sign.MemberNicknameAlreadyExistException;
 import com.jejeong.authplatform.repository.member.MemberRepository;
 import com.jejeong.authplatform.repository.role.RoleRepository;
-import com.jejeong.authplatform.utils.JwtTokenUtils;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -40,6 +40,7 @@ public class SignService {
         req.getNickname(), roles));
   }
 
+  @Transactional(readOnly = true)
   public SignInResponse signIn(SignInRequest req) {
     Member savedMember = memberRepository.findByEmail(req.getEmail())
         .orElseThrow(LoginFailureException::new);
@@ -64,4 +65,17 @@ public class SignService {
     }
   }
 
+  public RefreshTokenResponse refreshToken(String refreshToken) {
+    validateRefreshToken(refreshToken);
+    String subject = tokenService.extractRefreshTokenSubject(refreshToken);
+    String accessToken = tokenService.generateAccessToken(subject);
+    return new RefreshTokenResponse(accessToken);
+  }
+
+  private void validateRefreshToken(String refreshToken) {
+    String username = "";
+    if (!tokenService.validateRefreshToken(refreshToken, username)) {
+      throw new AuthenticationEntryPointException();
+    }
+  }
 }

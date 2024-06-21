@@ -9,6 +9,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.jejeong.authplatform.dto.sign.RefreshTokenResponse;
 import com.jejeong.authplatform.dto.sign.SignInRequest;
 import com.jejeong.authplatform.dto.sign.SignInResponse;
 import com.jejeong.authplatform.dto.sign.SignUpRequest;
@@ -72,6 +73,19 @@ class SignControllerTest {
         .andExpect(jsonPath("$.result.data.refreshToken").value("refresh"));
 
     verify(signService).signIn(req);
+  }
+
+  @Test
+  @DisplayName("토큰 재생성 확인")
+  void test3() throws Exception {
+    given(signService.refreshToken("refreshToken")).willReturn(
+        new RefreshTokenResponse("accessToken"));
+
+    mockMvc.perform(
+            post("/api/refresh-token")
+                .header("Authoriaztion", "refreshToken")
+        ).andExpect(status().isOk())
+        .andExpect(jsonPath("$.result.data.accessToken").value("accessToken"));
   }
 
 }

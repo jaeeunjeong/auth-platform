@@ -41,4 +41,20 @@ public class TokenService {
   public boolean validateRefreshToken(String token, String username) {
     return jwtTokenUtils.validate(token, username, refreshKey);
   }
+
+  public String extractAccessTokenSubject(String token) {
+    return jwtTokenUtils.extractAllClaims(accessKey, token).getSubject();
+  }
+
+  public String extractRefreshTokenSubject(String token) {
+    return jwtTokenUtils.extractAllClaims(refreshKey, token).getSubject();
+  }
+
+  public String extractAccessTokenUsername(String token) {
+    return jwtTokenUtils.getUsername(token, accessKey);
+  }
+
+  public String extractRefreshTokenUsername(String token) {
+    return jwtTokenUtils.getUsername(token, refreshKey);
+  }
 }
